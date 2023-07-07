@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teams management</title>
+</head>
+<body>
+  <div id="teamTable"></div>
+
+  <button onclick="openDialog()">Add Team</button>
+  <div class="modal fade" id="createTeamDialog" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+          <form class="row g-3">
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control" id="teamName" placeholder="Name" required>
+              <label for="teamName">Name</label>
+            </div>
+          </form>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary"  onclick="closeDialog()" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="createTeam()">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+<script src="script/team.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+  $(document).ready(function getTeamData() {
+    $.ajax({
+      url: "http://localhost:8080/api/team",
+      type: "GET",
+      dataType: "json",
+      success: function(data) {
+        var table = "<table><thead><tr><th>Id</th><th>Name</th></tr></thead><tbody>";
+
+        for (var i = 0; i < data.length; i++) {
+          var team = data[i];
+          table += "<tr><td>" + team.id + "</td><td>" + team.name + "</td></tr>";
+        }
+
+        table += "</tbody></table>";
+        $("#teamTable").html(table);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log("Error: " + errorThrown);
+      }
+    });
+  });
+
+  $(document).ready(function() {
+    // Open the modal when the "Create Team" button is clicked
+    $("#openModalBtn").click(function () {
+      $("#teamModal").css("display", "block");
+    });
+
+    // Close the modal when the "Close" button or the modal background is clicked
+    $(".closeModalBtn, #teamModal").click(function () {
+      $("#teamModal").css("display", "none");
+    });
+
+    // Handle the form submission
+    $("#createTeamForm").submit(function (event) {
+      event.preventDefault();
+      var teamName = $("#teamName").val();
+
+      // Make the POST request to create a team
+      $.ajax({
+        url: "http://localhost:8080/api/team/create",
+        type: "POST",
+        data: {name: teamName},
+        success: function (response) {
+          // Refresh the team table
+          getTeamData();
+          // Close the modal
+          $("#teamModal").css("display", "none");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          console.log("Error: " + errorThrown);
+        }
+      });
+    })});
+
+
+</script>
+
+<style>
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 300px;
+  }
+
+</style>
+</html>
